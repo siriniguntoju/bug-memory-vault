@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Bug, BarChart3, Plus } from "lucide-react";
+import { Bug, BarChart3, Plus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
@@ -18,6 +18,11 @@ export function SiteHeader() {
           <Button asChild variant="ghost" size="sm">
             <Link to="/" activeOptions={{ exact: true }} activeProps={{ className: "text-primary" }}>
               bugs
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/debug" activeProps={{ className: "text-primary" }}>
+              <Sparkles className="mr-1 h-4 w-4" /> debug
             </Link>
           </Button>
           <Button asChild variant="ghost" size="sm">
