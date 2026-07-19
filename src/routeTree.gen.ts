@@ -13,6 +13,7 @@ import { Route as StatsRouteImport } from './routes/stats'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BugsNewRouteImport } from './routes/bugs.new'
 import { Route as BugsIdRouteImport } from './routes/bugs.$id'
+import { Route as ApiDebugRouteImport } from './routes/api/debug'
 import { Route as BugsIdEditRouteImport } from './routes/bugs.$id.edit'
 
 const StatsRoute = StatsRouteImport.update({
@@ -35,6 +36,11 @@ const BugsIdRoute = BugsIdRouteImport.update({
   path: '/bugs/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDebugRoute = ApiDebugRouteImport.update({
+  id: '/api/debug',
+  path: '/api/debug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BugsIdEditRoute = BugsIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -44,6 +50,7 @@ const BugsIdEditRoute = BugsIdEditRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/stats': typeof StatsRoute
+  '/api/debug': typeof ApiDebugRoute
   '/bugs/$id': typeof BugsIdRouteWithChildren
   '/bugs/new': typeof BugsNewRoute
   '/bugs/$id/edit': typeof BugsIdEditRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/stats': typeof StatsRoute
+  '/api/debug': typeof ApiDebugRoute
   '/bugs/$id': typeof BugsIdRouteWithChildren
   '/bugs/new': typeof BugsNewRoute
   '/bugs/$id/edit': typeof BugsIdEditRoute
@@ -59,21 +67,42 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/stats': typeof StatsRoute
+  '/api/debug': typeof ApiDebugRoute
   '/bugs/$id': typeof BugsIdRouteWithChildren
   '/bugs/new': typeof BugsNewRoute
   '/bugs/$id/edit': typeof BugsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/stats' | '/bugs/$id' | '/bugs/new' | '/bugs/$id/edit'
+  fullPaths:
+    | '/'
+    | '/stats'
+    | '/api/debug'
+    | '/bugs/$id'
+    | '/bugs/new'
+    | '/bugs/$id/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/stats' | '/bugs/$id' | '/bugs/new' | '/bugs/$id/edit'
-  id: '__root__' | '/' | '/stats' | '/bugs/$id' | '/bugs/new' | '/bugs/$id/edit'
+  to:
+    | '/'
+    | '/stats'
+    | '/api/debug'
+    | '/bugs/$id'
+    | '/bugs/new'
+    | '/bugs/$id/edit'
+  id:
+    | '__root__'
+    | '/'
+    | '/stats'
+    | '/api/debug'
+    | '/bugs/$id'
+    | '/bugs/new'
+    | '/bugs/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   StatsRoute: typeof StatsRoute
+  ApiDebugRoute: typeof ApiDebugRoute
   BugsIdRoute: typeof BugsIdRouteWithChildren
   BugsNewRoute: typeof BugsNewRoute
 }
@@ -108,6 +137,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BugsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/debug': {
+      id: '/api/debug'
+      path: '/api/debug'
+      fullPath: '/api/debug'
+      preLoaderRoute: typeof ApiDebugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/bugs/$id/edit': {
       id: '/bugs/$id/edit'
       path: '/edit'
@@ -132,6 +168,7 @@ const BugsIdRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   StatsRoute: StatsRoute,
+  ApiDebugRoute: ApiDebugRoute,
   BugsIdRoute: BugsIdRouteWithChildren,
   BugsNewRoute: BugsNewRoute,
 }
