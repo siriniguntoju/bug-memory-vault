@@ -9,38 +9,84 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StatsRouteImport } from './routes/stats'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BugsNewRouteImport } from './routes/bugs.new'
+import { Route as BugsIdRouteImport } from './routes/bugs.$id'
+import { Route as BugsIdEditRouteImport } from './routes/bugs.$id.edit'
 
+const StatsRoute = StatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BugsNewRoute = BugsNewRouteImport.update({
+  id: '/bugs/new',
+  path: '/bugs/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BugsIdRoute = BugsIdRouteImport.update({
+  id: '/bugs/$id',
+  path: '/bugs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BugsIdEditRoute = BugsIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => BugsIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/stats': typeof StatsRoute
+  '/bugs/$id': typeof BugsIdRouteWithChildren
+  '/bugs/new': typeof BugsNewRoute
+  '/bugs/$id/edit': typeof BugsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/stats': typeof StatsRoute
+  '/bugs/$id': typeof BugsIdRouteWithChildren
+  '/bugs/new': typeof BugsNewRoute
+  '/bugs/$id/edit': typeof BugsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/stats': typeof StatsRoute
+  '/bugs/$id': typeof BugsIdRouteWithChildren
+  '/bugs/new': typeof BugsNewRoute
+  '/bugs/$id/edit': typeof BugsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/stats' | '/bugs/$id' | '/bugs/new' | '/bugs/$id/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/stats' | '/bugs/$id' | '/bugs/new' | '/bugs/$id/edit'
+  id: '__root__' | '/' | '/stats' | '/bugs/$id' | '/bugs/new' | '/bugs/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  StatsRoute: typeof StatsRoute
+  BugsIdRoute: typeof BugsIdRouteWithChildren
+  BugsNewRoute: typeof BugsNewRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/stats': {
+      id: '/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof StatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,12 +94,57 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bugs/new': {
+      id: '/bugs/new'
+      path: '/bugs/new'
+      fullPath: '/bugs/new'
+      preLoaderRoute: typeof BugsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bugs/$id': {
+      id: '/bugs/$id'
+      path: '/bugs/$id'
+      fullPath: '/bugs/$id'
+      preLoaderRoute: typeof BugsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bugs/$id/edit': {
+      id: '/bugs/$id/edit'
+      path: '/edit'
+      fullPath: '/bugs/$id/edit'
+      preLoaderRoute: typeof BugsIdEditRouteImport
+      parentRoute: typeof BugsIdRoute
+    }
   }
 }
 
+interface BugsIdRouteChildren {
+  BugsIdEditRoute: typeof BugsIdEditRoute
+}
+
+const BugsIdRouteChildren: BugsIdRouteChildren = {
+  BugsIdEditRoute: BugsIdEditRoute,
+}
+
+const BugsIdRouteWithChildren =
+  BugsIdRoute._addFileChildren(BugsIdRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  StatsRoute: StatsRoute,
+  BugsIdRoute: BugsIdRouteWithChildren,
+  BugsNewRoute: BugsNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
