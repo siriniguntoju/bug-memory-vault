@@ -14,7 +14,7 @@ function subscribe(cb: () => void) {
 
 const EMPTY: BugEntry[] = [];
 let cachedSnapshot: BugEntry[] | undefined;
-let cachedRaw: string | undefined;
+let cachedRaw: string | null | undefined;
 
 function getSnapshot(): BugEntry[] {
   if (typeof window === "undefined") return EMPTY;
