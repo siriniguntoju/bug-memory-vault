@@ -27,14 +27,40 @@ export const Route = createFileRoute("/api/debug")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { code, errorMessage, language } = (await request.json()) as {
-          code?: string;
-          errorMessage?: string;
-          language?: string;
-        };
+        const MAX_CODE = 8000;
+        const MAX_ERROR = 4000;
+        const MAX_LANG = 20;
+        const MAX_BODY = 32_000;
+
+        const contentLength = Number(request.headers.get("content-length") ?? 0);
+        if (contentLength && contentLength > MAX_BODY) {
+          return new Response("Request too large.", { status: 413 });
+        }
+
+        const raw = await request.text();
+        if (raw.length > MAX_BODY) {
+          return new Response("Request too large.", { status: 413 });
+        }
+
+        let parsed: { code?: string; errorMessage?: string; language?: string };
+        try {
+          parsed = JSON.parse(raw);
+        } catch {
+          return new Response("Invalid JSON.", { status: 400 });
+        }
+
+        const code = typeof parsed.code === "string" ? parsed.code : "";
+        const errorMessage = typeof parsed.errorMessage === "string" ? parsed.errorMessage : "";
+        const language = typeof parsed.language === "string" ? parsed.language.slice(0, MAX_LANG) : "";
 
         if (!code && !errorMessage) {
           return new Response("Provide code or an error message.", { status: 400 });
+        }
+        if (code.length > MAX_CODE) {
+          return new Response(`Code exceeds ${MAX_CODE} character limit.`, { status: 413 });
+        }
+        if (errorMessage.length > MAX_ERROR) {
+          return new Response(`Error message exceeds ${MAX_ERROR} character limit.`, { status: 413 });
         }
 
         const key = process.env.LOVABLE_API_KEY;
