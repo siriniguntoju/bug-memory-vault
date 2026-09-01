@@ -64,6 +64,14 @@ export const Route = createFileRoute("/api/debug")({
         const MAX_LANG = 20;
         const MAX_BODY = 32_000;
 
+        const quota = checkQuota(getClientId(request));
+        if (!quota.allowed) {
+          return new Response("Usage limit reached. Please try again later.", {
+            status: 429,
+            headers: { "Retry-After": String(quota.retryAfter) },
+          });
+        }
+
         const contentLength = Number(request.headers.get("content-length") ?? 0);
         if (contentLength && contentLength > MAX_BODY) {
           return new Response("Request too large.", { status: 413 });
