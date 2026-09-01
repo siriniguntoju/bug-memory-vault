@@ -23,6 +23,38 @@ const analysisSchema = z.object({
 
 export type DebugAnalysis = z.infer<typeof analysisSchema>;
 
+// Per-client usage quota to prevent anonymous abuse of the paid AI model.
+const WINDOW_MS = 60 * 60 * 1000;
+const MAX_REQUESTS_PER_WINDOW = 15;
+const usage = new Map<string, { count: number; resetAt: number }>();
+
+function checkQuota(clientId: string): { allowed: boolean; retryAfter: number } {
+  const now = Date.now();
+  // Opportunistic cleanup so the map cannot grow without bound.
+  if (usage.size > 5000) {
+    for (const [k, v] of usage) if (v.resetAt <= now) usage.delete(k);
+  }
+  const entry = usage.get(clientId);
+  if (!entry || entry.resetAt <= now) {
+    usage.set(clientId, { count: 1, resetAt: now + WINDOW_MS });
+    return { allowed: true, retryAfter: 0 };
+  }
+  if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
+    return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) };
+  }
+  entry.count += 1;
+  return { allowed: true, retryAfter: 0 };
+}
+
+function getClientId(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  return (
+    request.headers.get("cf-connecting-ip") ??
+    (forwarded ? forwarded.split(",")[0]!.trim() : null) ??
+    "unknown"
+  );
+}
+
 export const Route = createFileRoute("/api/debug")({
   server: {
     handlers: {
